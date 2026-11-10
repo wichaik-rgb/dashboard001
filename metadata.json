@@ -1,0 +1,6 @@
+{
+  "name": "ระบบประเมินความพึงพอใจและ Real-time Dashboard",
+  "description": "เว็บแอปพลิเคชันเก็บแบบประเมินความพึงพอใจการอบรม 5 ระดับ พร้อม Dashboard แสดงผลเรียลไทม์ QR Code สแกนตอบ และดาวน์โหลด CSV",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

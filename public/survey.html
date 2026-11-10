@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>แบบประเมินความพึงพอใจการอบรม</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <!-- Firebase App & Database (Compat CDN - ใช้งานง่ายในไฟล์เดียว) -->
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js"></script>
+  <style>
+    body { font-family: 'Prompt', sans-serif; -webkit-tap-highlight-color: transparent; }
+    .rating-btn.active {
+      background-color: #2563eb;
+      color: #ffffff;
+      border-color: #1d4ed8;
+      box-shadow: 0 4px 12px rgba(37, 99, 235, 0.35);
+      transform: translateY(-2px);
+    }
+  </style>
+</head>
+<body class="bg-slate-50 text-slate-800 min-h-screen pb-12">
+
+  <!-- Header -->
+  <header class="bg-gradient-to-r from-blue-600 to-indigo-700 text-white py-6 px-4 shadow-lg sticky top-0 z-20">
+    <div class="max-w-md mx-auto text-center">
+      <div class="inline-flex items-center justify-center p-2 bg-white/10 rounded-full mb-2">
+        <svg class="w-6 h-6 text-yellow-300" fill="currentColor" viewBox="0 0 20 20">
+          <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path>
+        </svg>
+      </div>
+      <h1 class="text-xl font-bold tracking-tight">แบบประเมินความพึงพอใจการอบรม</h1>
+      <p class="text-xs text-blue-100 mt-1">ความคิดเห็นของท่านมีคุณค่าอย่างยิ่งในการพัฒนาครั้งถัดไป</p>
+    </div>
+  </header>
+
+  <!-- Main Container -->
+  <main class="max-w-md mx-auto px-4 mt-6">
+
+    <!-- Already Submitted Card (Hidden by default) -->
+    <div id="already-submitted" class="hidden bg-white rounded-2xl p-6 shadow-md border border-slate-100 text-center">
+      <div class="w-16 h-16 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto mb-4">
+        <svg class="w-8 h-8" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"></path></svg>
+      </div>
+      <h2 class="text-xl font-bold text-slate-800 mb-2">ท่านได้ส่งแบบประเมินเรียบร้อยแล้ว</h2>
+      <p class="text-slate-600 text-sm mb-6">ระบบบันทึกความคิดเห็นของท่านแล้ว ขอขอบพระคุณเป็นอย่างสูงสำหรับการร่วมประเมิน</p>
+      <button onclick="resetSubmission()" class="text-xs text-blue-600 underline font-medium hover:text-blue-800">
+        (สำหรับทดสอบ: ล้างข้อมูลเครื่องเพื่อลองตอบใหม่)
+      </button>
+    </div>
+
+    <!-- Survey Form -->
+    <form id="survey-form" class="space-y-6">
+      
+      <!-- Guidance Card -->
+      <div class="bg-blue-50 border border-blue-200 rounded-xl p-4 text-xs text-blue-800 leading-relaxed">
+        <p class="font-semibold mb-1">เกณฑ์การให้คะแนน (สเกล 1 - 5):</p>
+        <div class="grid grid-cols-5 gap-1 text-center font-medium mt-2">
+          <div class="bg-white/80 py-1 rounded">1 = น้อยสุด</div>
+          <div class="bg-white/80 py-1 rounded">2 = น้อย</div>
+          <div class="bg-white/80 py-1 rounded">3 = ปานกลาง</div>
+          <div class="bg-white/80 py-1 rounded">4 = มาก</div>
+          <div class="bg-white/80 py-1 rounded">5 = มากสุด</div>
+        </div>
+      </div>
+
+      <!-- Question 1 -->
+      <div class="bg-white rounded-2xl p-5 shadow-sm border border-slate-200/80">
+        <div class="flex items-start justify-between mb-2">
+          <h3 class="font-semibold text-slate-800 text-base">1. วิทยากรและวิธีการถ่ายทอด</h3>
+          <span class="text-xs bg-blue-100 text-blue-700 font-medium px-2 py-0.5 rounded-full">ข้อ 1/5</span>
+        </div>
+        <p class="text-xs text-slate-500 mb-4">อธิบายชัดเจน ตรงประเด็น บรรยากาศเป็นกันเอง ตอบคำถามเข้าใจง่าย</p>
+        <div class="grid grid-cols-5 gap-2 rating-group" data-q="0">
+          <button type="button" data-val="1" class="rating-btn border border-slate-200 rounded-xl py-3 font-semibold text-slate-700 text-lg transition active:scale-95">1</button>
+          <button type="button" data-val="2" class="rating-btn border border-slate-200 rounded-xl py-3 font-semibold text-slate-700 text-lg transition active:scale-95">2</button>
+          <button type="button" data-val="3" class="rating-btn border border-slate-200 rounded-xl py-3 font-semibold text-slate-700 text-lg transition active:scale-95">3</button>
+          <button type="button" data-val="4" class="rating-btn border border-slate-200 rounded-xl py-3 font-semibold text-slate-700 text-lg transition active:scale-95">4</button>
+          <button type="button" data-val="5" class="rating-btn border border-slate-200 rounded-xl py-3 font-semibold text-slate-700 text-lg transition active:scale-95">5</button>
+        </div>
+      </div>
+
+      <!-- Question 2 -->
+      <div class="bg-white rounded-2xl p-5 shadow-sm border border-slate-200/80">
+        <div class="flex items-start justify-between mb-2">
+          <h3 class="font-semibold text-slate-800 text-base">2. เนื้อหาหลักสูตรและประโยชน์</h3>
+          <span class="text-xs bg-blue-100 text-blue-700 font-medium px-2 py-0.5 rounded-full">ข้อ 2/5</span>
+        </div>
+        <p class="text-xs text-slate-500 mb-4">เนื้อหาทันสมัย ครบถ้วนตามเป้าหมาย มีตัวอย่างชัดเจน</p>
+        <div class="grid grid-cols-5 gap-2 rating-group" data-q="1">
+          <button type="button" data-val="1" class="rating-btn border border-slate-200 rounded-xl py-3 font-semibold text-slate-700 text-lg transition active:scale-95">1</button>
+          <button type="button" data-val="2" class="rating-btn border border-slate-200 rounded-xl py-3 font-semibold text-slate-700 text-lg transition active:scale-95">2</button>
+          <button type="button" data-val="3" class="rating-btn border border-slate-200 rounded-xl py-3 font-semibold text-slate-700 text-lg transition active:scale-95">3</button>
+          <button type="button" data-val="4" class="rating-btn border border-slate-200 rounded-xl py-3 font-semibold text-slate-700 text-lg transition active:scale-95">4</button>
+          <button type="button" data-val="5" class="rating-btn border border-slate-200 rounded-xl py-3 font-semibold text-slate-700 text-lg transition active:scale-95">5</button>
+        </div>
+      </div>
+
+      <!-- Question 3 -->
+      <div class="bg-white rounded-2xl p-5 shadow-sm border border-slate-200/80">
+        <div class="flex items-start justify-between mb-2">
+          <h3 class="font-semibold text-slate-800 text-base">3. การนำความรู้ไปประยุกต์ใช้</h3>
+          <span class="text-xs bg-blue-100 text-blue-700 font-medium px-2 py-0.5 rounded-full">ข้อ 3/5</span>
+        </div>
+        <p class="text-xs text-slate-500 mb-4">สามารถนำความรู้/ทักษะไปปรับใช้กับงานจริงได้ทันที</p>
+        <div class="grid grid-cols-5 gap-2 rating-group" data-q="2">
+          <button type="button" data-val="1" class="rating-btn border border-slate-200 rounded-xl py-3 font-semibold text-slate-700 text-lg transition active:scale-95">1</button>
+          <button type="button" data-val="2" class="rating-btn border border-slate-200 rounded-xl py-3 font-semibold text-slate-700 text-lg transition active:scale-95">2</button>
+          <button type="button" data-val="3" class="rating-btn border border-slate-200 rounded-xl py-3 font-semibold text-slate-700 text-lg transition active:scale-95">3</button>
+          <button type="button" data-val="4" class="rating-btn border border-slate-200 rounded-xl py-3 font-semibold text-slate-700 text-lg transition active:scale-95">4</button>
+          <button type="button" data-val="5" class="rating-btn border border-slate-200 rounded-xl py-3 font-semibold text-slate-700 text-lg transition active:scale-95">5</button>
+        </div>
+      </div>
+
+      <!-- Question 4 -->
+      <div class="bg-white rounded-2xl p-5 shadow-sm border border-slate-200/80">
+        <div class="flex items-start justify-between mb-2">
+          <h3 class="font-semibold text-slate-800 text-base">4. สถานที่ อุปกรณ์ และโสตทัศนูปกรณ์</h3>
+          <span class="text-xs bg-blue-100 text-blue-700 font-medium px-2 py-0.5 rounded-full">ข้อ 4/5</span>
+        </div>
+        <p class="text-xs text-slate-500 mb-4">จอภาพ เครื่องเสียง ความเร็วอินเทอร์เน็ต และบรรยากาศโดยรอบ</p>
+        <div class="grid grid-cols-5 gap-2 rating-group" data-q="3">
+          <button type="button" data-val="1" class="rating-btn border border-slate-200 rounded-xl py-3 font-semibold text-slate-700 text-lg transition active:scale-95">1</button>
+          <button type="button" data-val="2" class="rating-btn border border-slate-200 rounded-xl py-3 font-semibold text-slate-700 text-lg transition active:scale-95">2</button>
+          <button type="button" data-val="3" class="rating-btn border border-slate-200 rounded-xl py-3 font-semibold text-slate-700 text-lg transition active:scale-95">3</button>
+          <button type="button" data-val="4" class="rating-btn border border-slate-200 rounded-xl py-3 font-semibold text-slate-700 text-lg transition active:scale-95">4</button>
+          <button type="button" data-val="5" class="rating-btn border border-slate-200 rounded-xl py-3 font-semibold text-slate-700 text-lg transition active:scale-95">5</button>
+        </div>
+      </div>
+
+      <!-- Question 5 -->
+      <div class="bg-white rounded-2xl p-5 shadow-sm border border-slate-200/80">
+        <div class="flex items-start justify-between mb-2">
+          <h3 class="font-semibold text-slate-800 text-base">5. ความพึงพอใจในภาพรวม</h3>
+          <span class="text-xs bg-blue-100 text-blue-700 font-medium px-2 py-0.5 rounded-full">ข้อ 5/5</span>
+        </div>
+        <p class="text-xs text-slate-500 mb-4">ความคุ้มค่าและความประทับใจตลอดการฝึกอบรมในวันนี้</p>
+        <div class="grid grid-cols-5 gap-2 rating-group" data-q="4">
+          <button type="button" data-val="1" class="rating-btn border border-slate-200 rounded-xl py-3 font-semibold text-slate-700 text-lg transition active:scale-95">1</button>
+          <button type="button" data-val="2" class="rating-btn border border-slate-200 rounded-xl py-3 font-semibold text-slate-700 text-lg transition active:scale-95">2</button>
+          <button type="button" data-val="3" class="rating-btn border border-slate-200 rounded-xl py-3 font-semibold text-slate-700 text-lg transition active:scale-95">3</button>
+          <button type="button" data-val="4" class="rating-btn border border-slate-200 rounded-xl py-3 font-semibold text-slate-700 text-lg transition active:scale-95">4</button>
+          <button type="button" data-val="5" class="rating-btn border border-slate-200 rounded-xl py-3 font-semibold text-slate-700 text-lg transition active:scale-95">5</button>
+        </div>
+      </div>
+
+      <!-- Suggestion Box (Optional) -->
+      <div class="bg-white rounded-2xl p-5 shadow-sm border border-slate-200/80">
+        <label for="suggestion" class="block font-semibold text-slate-800 text-base mb-1">
+          ข้อเสนอแนะเพิ่มเติม <span class="text-xs font-normal text-slate-400">(ไม่บังคับ)</span>
+        </label>
+        <p class="text-xs text-slate-500 mb-3">สิ่งที่ชื่นชอบ หรืออยากให้ปรับปรุงในครั้งต่อไป</p>
+        <textarea id="suggestion" rows="3" class="w-full border border-slate-300 rounded-xl p-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="พิมพ์ข้อเสนอแนะหรือความประทับใจที่นี่..."></textarea>
+      </div>
+
+      <!-- Submit Button -->
+      <button type="submit" id="submit-btn" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-4 rounded-xl shadow-lg shadow-blue-500/25 transition duration-200 text-base flex items-center justify-center gap-2 active:scale-98">
+        <span>ส่งแบบประเมินความพึงพอใจ</span>
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
+      </button>
+
+      <p id="error-msg" class="text-center text-xs text-rose-500 font-medium hidden">กรุณาเลือกคะแนนให้ครบทั้ง 5 ข้อก่อนกดส่ง</p>
+    </form>
+
+  </main>
+
+  <script>
+    const firebaseConfig = {
+      apiKey: "YOUR_API_KEY",
+      authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
+      databaseURL: "https://YOUR_PROJECT_ID-default-rtdb.asia-southeast1.firebasedatabase.app",
+      projectId: "YOUR_PROJECT_ID",
+      storageBucket: "YOUR_PROJECT_ID.appspot.com",
+      messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
+      appId: "YOUR_APP_ID"
+    };
+
+    let db = null;
+    try {
+      if (firebaseConfig.apiKey !== "YOUR_API_KEY") {
+        firebase.initializeApp(firebaseConfig);
+        db = firebase.database();
+      }
+    } catch (e) {
+      console.warn("Firebase not configured:", e);
+    }
+
+    const selectedRatings = [null, null, null, null, null];
+    const SUBMIT_KEY = 'training_eval_submitted_v1';
+
+    function checkDuplicate() {
+      if (localStorage.getItem(SUBMIT_KEY)) {
+        document.getElementById('survey-form').classList.add('hidden');
+        document.getElementById('already-submitted').classList.remove('hidden');
+      }
+    }
+    checkDuplicate();
+
+    function resetSubmission() {
+      localStorage.removeItem(SUBMIT_KEY);
+      location.reload();
+    }
+
+    document.querySelectorAll('.rating-group').forEach(group => {
+      const qIndex = parseInt(group.dataset.q, 10);
+      const buttons = group.querySelectorAll('.rating-btn');
+
+      buttons.forEach(btn => {
+        btn.addEventListener('click', () => {
+          buttons.forEach(b => b.classList.remove('active'));
+          btn.classList.add('active');
+          selectedRatings[qIndex] = parseInt(btn.dataset.val, 10);
+          document.getElementById('error-msg').classList.add('hidden');
+        });
+      });
+    });
+
+    document.getElementById('survey-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      
+      const allSelected = selectedRatings.every(r => r !== null && r >= 1 && r <= 5);
+      if (!allSelected) {
+        const errorEl = document.getElementById('error-msg');
+        errorEl.classList.remove('hidden');
+        errorEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        return;
+      }
+
+      const suggestion = document.getElementById('suggestion').value.trim();
+      const submitBtn = document.getElementById('submit-btn');
+      submitBtn.disabled = true;
+      submitBtn.innerHTML = 'กำลังบันทึกข้อมูล...';
+
+      const payload = {
+        timestamp: Date.now(),
+        createdAt: new Date().toLocaleString('th-TH'),
+        ratings: selectedRatings,
+        suggestion: suggestion
+      };
+
+      try {
+        if (db) {
+          await db.ref('responses').push(payload);
+        } else {
+          // Fallback to local server
+          await fetch('/api/responses', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+          }).catch(() => {});
+        }
+
+        localStorage.setItem(SUBMIT_KEY, 'true');
+        document.getElementById('survey-form').classList.add('hidden');
+        document.getElementById('already-submitted').classList.remove('hidden');
+
+      } catch (err) {
+        alert('เกิดข้อผิดพลาดในการส่งข้อมูล: ' + err.message);
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = 'ส่งแบบประเมินความพึงพอใจ';
+      }
+    });
+  </script>
+</body>
+</html>
